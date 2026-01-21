@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validator dependencies
+        run: npm ci
+        working-directory: validator
+
+      - name: Build validator
+        run: npm run build
+        working-directory: validator
+
+      - name: Install CLI dependencies
+        run: npm ci
+        working-directory: cli
+
+      - name: Build CLI
+        run: npm run build
+        working-directory: cli
+
+      - name: Run conformance tests
+        run: |
+          echo "==> Testing INVALID cases"
+          node validator/dist/index.js examples/example_invalid.dil | diff examples/golden/expected_validation_report.json -
+          node validator/dist/index.js examples/example_invalid_vm1_only.dil | diff examples/golden/expected_invalid_vm1_only.json -
+          node validator/dist/index.js examples/example_invalid_vm3_untraced.dil | diff examples/golden/expected_invalid_vm3_untraced.json -
+          node validator/dist/index.js examples/example_invalid_vm5_leak.dil | diff examples/golden/expected_invalid_vm5_leak.json -
+
+          echo "==> Testing UNDECIDABLE cases"
+          node validator/dist/index.js examples/example_undecidable.dil | diff examples/golden/expected_validation_report_undecidable.json -
+          node validator/dist/index.js examples/example_undecidable_vm4_single.dil | diff examples/golden/expected_undecidable_vm4_single.json -
+          node validator/dist/index.js examples/example_undecidable_vm4_multi.dil | diff examples/golden/expected_undecidable_vm4_multi.json -
+
+          echo "==> Testing VALID cases"
+          node validator/dist/index.js examples/example.dil | jq -e '.state == "valid" and .errors == []'
+          node validator/dist/index.js examples/example_valid_strict.dil | jq -e '.state == "valid" and .errors == []'
+
+          echo "==> All conformance tests passed"
+
+      - name: Test CLI help
+        run: |
+          node cli/dist/index.js --help
+          node cli/dist/index.js --version

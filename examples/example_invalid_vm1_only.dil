@@ -1,0 +1,28 @@
+DIL:spec v0
+
+system "DIL.InvalidVM1Only" {
+  about {
+    purpose: "Isolate V-M1 failure: intent has no validation association."
+    scope:   "Single intent with no explicit or implied validation link."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Unverifiable Intent" {
+      statement: "This intent has no validation association."
+    }
+  }
+
+  constraints {
+    constraint C1 "Placeholder Constraint" {
+      rule: "A constraint to satisfy V-M2."
+      severity: HARD
+    }
+  }
+}

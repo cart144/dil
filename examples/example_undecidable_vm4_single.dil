@@ -1,0 +1,45 @@
+DIL:spec v0
+
+system "DIL.UndecidableVM4Single" {
+  about {
+    purpose: "Isolate V-M4 unknown: single validation requires undeclared capability."
+    scope:   "V-M4 returns unknown; all other validations satisfied."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+  }
+
+  intents {
+    intent I1 "Evidence-dependent Intent" {
+      statement: "Requires external evidence collection."
+    }
+  }
+
+  constraints {
+    constraint C1 "Evidence Required" {
+      rule: "All claims must be backed by collected evidence."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Proceed with evidence requirement" {
+      rationale: "Assumes evidence capability will be available."
+      supports: [I1]
+      respects: [C1]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Evidence collection" {
+      target: decisions.*
+      predicate: "evidence can be collected"
+      requires_capability: "collect_evidence"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+DIL:spec v0
+
+system "DIL.FailureSeed" {
+  about {
+    purpose: "Intentionally fail validation to test DIL's rejection behavior."
+    scope:   "Language-level semantics only."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Unverifiable Intent" {
+      statement: "The system should be good and fast."
+      # NOTE: Intentionally missing any explicit validation association.
+    }
+
+    intent I2 "Implementation Leakage" {
+      statement: "Store decisions efficiently."
+      # This one will also leak implementation below.
+    }
+  }
+
+  constraints {
+    constraint C1 "No Implementation" {
+      rule: "No artifact may prescribe algorithms, control flow, or implementation steps."
+      severity: HARD
+    }
+
+    constraint C2 "Explicit Decisions" {
+      rule: "Any non-trivial choice must be recorded as a decision linked to intents and constraints."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Untraced decision" {
+      rationale: "Because it feels right."
+      supports: []
+      respects: []
+      supersedes: []
+    }
+
+    decision D2 "Broken references" {
+      rationale: "Test reference integrity."
+      supports: [I_DO_NOT_EXIST]
+      respects: [C_DO_NOT_EXIST]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Intent has validations" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+      on_fail: error {
+        code: "INTENT_NOT_VERIFIABLE"
+        message: "Intent lacks explicit validation; verifiability is required."
+        refs: { intent: "${target.id}", validation: "V-M1" }
+      }
+    }
+
+    validate V5 "No implementation leakage" {
+      target: system
+      predicate: "no text contains implementation directives"
+      on_fail: error {
+        code: "IMPLEMENTATION_LEAK"
+        message: "Specification prescribes implementation; violates No Implementation."
+        refs: { constraint: "C1", validation: "V-M5" }
+      }
+    }
+  }
+
+  implementation_notes {
+    # INTENTIONAL VIOLATION (V-M5 / C1):
+    # Use a B-Tree index and implement an LRU cache.
+    # If lookup time exceeds O(log n), rebalance the tree.
+    # Run a background compaction job every 10 minutes.
+  }
+}

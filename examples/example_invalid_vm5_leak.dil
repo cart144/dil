@@ -1,0 +1,51 @@
+DIL:spec v0
+
+system "DIL.InvalidVM5Leak" {
+  about {
+    purpose: "Isolate V-M5 failure: implementation leakage via B-Tree keyword."
+    scope:   "All other validations pass; only V-M5 fails."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Valid Intent" {
+      statement: "This intent has explicit validation association."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "No Implementation" {
+      rule: "No artifact may prescribe algorithms or implementation steps."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Valid Decision" {
+      rationale: "Supports intent and respects constraint."
+      supports: [I1]
+      respects: [C1]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Intent validation check" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+    }
+  }
+
+  implementation_notes {
+    # INTENTIONAL VIOLATION:
+    # Use a B-Tree index for fast lookups.
+  }
+}

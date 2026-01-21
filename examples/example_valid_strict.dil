@@ -1,0 +1,77 @@
+DIL:spec v0
+
+system "DIL.ValidStrict" {
+  about {
+    purpose: "A strict VALID example: fully traced decisions, verifiable intents, no implementation leakage."
+    scope:   "Language-level semantics only."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Traceable Decisions" {
+      statement: "Every decision is traceable to at least one intent and at least one constraint."
+      validations: [V_M1]
+    }
+
+    intent I2 "No Implementation Leakage" {
+      statement: "The specification must not prescribe implementation strategies."
+      validations: [V_M5]
+    }
+  }
+
+  constraints {
+    constraint C1 "No Implementation" {
+      rule: "The specification MUST NOT contain implementation directives, algorithms, or performance prescriptions."
+      severity: HARD
+    }
+
+    constraint C2 "Decision Trace" {
+      rule: "Each decision MUST support >=1 intent and MUST respect >=1 constraint."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Declare trace-first governance" {
+      rationale: "Decisions are first-class artifacts; traceability enables verification and auditing."
+      supports: [I1, I2]
+      respects: [C1, C2]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V_M1 "Intent verifiability" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+      on_fail: error {
+        code: "INTENT_NOT_VERIFIABLE"
+        message: "Intent lacks explicit validation; verifiability is required."
+        refs: { intent: "${target.id}", validation: "V-M1" }
+      }
+    }
+
+    validate V_M5 "No implementation leakage" {
+      target: system
+      predicate: "no implementation directives present"
+      on_fail: error {
+        code: "IMPLEMENTATION_LEAK"
+        message: "Specification prescribes implementation; violates No Implementation."
+        refs: { constraint: "C1", validation: "V-M5" }
+      }
+    }
+  }
+
+  change {
+    condition CH1 "Capabilities may expand" {
+      statement: "New capabilities MAY be declared in future versions without changing existing intent semantics."
+    }
+  }
+}

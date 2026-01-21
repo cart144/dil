@@ -1,0 +1,51 @@
+DIL:spec v0
+
+system "DIL.UndecidableVM4Multi" {
+  about {
+    purpose: "V-M4 unknown with multiple validations requiring undeclared capabilities."
+    scope:   "Tests deterministic ordering of multiple targets in V-M4 outcome."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+  }
+
+  intents {
+    intent I1 "Multi-evidence Intent" {
+      statement: "Requires multiple forms of external validation."
+    }
+  }
+
+  constraints {
+    constraint C1 "Full Compliance" {
+      rule: "All external validations must pass."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Proceed with multi-validation" {
+      rationale: "Assumes all validation capabilities will be available."
+      supports: [I1]
+      respects: [C1]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Audit compliance check" {
+      target: decisions.*
+      predicate: "audit compliance can be verified"
+      requires_capability: "audit_compliance"
+    }
+
+    validate V2 "Evidence collection" {
+      target: decisions.*
+      predicate: "evidence can be collected"
+      requires_capability: "collect_evidence"
+    }
+  }
+}

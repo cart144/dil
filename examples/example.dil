@@ -1,0 +1,87 @@
+DIL:spec v0
+
+system "DIL.MinimalSeed" {
+  about {
+    purpose: "Declare verifiable intents with explicit constraints and traceable decisions."
+    scope:   "Language-level semantics only; no implementation, no runtime, no UI."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Verifiable Intent" {
+      statement: "Every intent declared in this system must be verifiable via explicit validations."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "No Implementation" {
+      rule: "No artifact may prescribe algorithms, control flow, or implementation steps."
+      severity: HARD
+    }
+
+    constraint C2 "Explicit Decisions" {
+      rule: "Any non-trivial choice must be recorded as a decision linked to intents and constraints."
+      severity: HARD
+    }
+
+    constraint C3 "Structured Errors" {
+      rule: "Violations must be emitted as structured errors referencing the violated constraint(s)."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Keep priority non-core" {
+      rationale: "Priority can bias solutions and hide constraint violations; keep it optional and subordinate."
+      supports: [I1]
+      respects: [C1, C2]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Intent has validations" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+      on_fail: error {
+        code: "INTENT_NOT_VERIFIABLE"
+        message: "Intent lacks explicit validation; verifiability is required."
+        refs: { intent: "${target.id}", constraint: "I1" }
+      }
+    }
+
+    validate V2 "No implementation leakage" {
+      target: system
+      predicate: "no text contains implementation directives (algorithms, control flow, step-by-step procedures)"
+      on_fail: error {
+        code: "IMPLEMENTATION_LEAK"
+        message: "Specification prescribes implementation; violates No Implementation."
+        refs: { constraint: "C1" }
+      }
+    }
+
+    validate V3 "Decisions are linked" {
+      target: decisions.*
+      predicate: "each decision links supports/respects to existing intents/constraints"
+      on_fail: error {
+        code: "UNTRACED_DECISION"
+        message: "Decision missing traceability links to intents/constraints."
+        refs: { constraint: "C2", decision: "${target.id}" }
+      }
+    }
+  }
+
+  change {
+    condition CH1 "Revision expected" {
+      statement: "This spec will evolve; changes must produce an explicit decision trace and revalidation."
+    }
+  }
+}

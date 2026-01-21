@@ -1,0 +1,51 @@
+DIL:spec v0
+
+system "DIL.InvalidVM3Untraced" {
+  about {
+    purpose: "Isolate V-M3 failure: decision has empty supports array."
+    scope:   "Single decision with no traceability links."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    emit_structured_errors
+  }
+
+  intents {
+    intent I1 "Traced Intent" {
+      statement: "This intent has explicit validation association."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "First Constraint" {
+      rule: "A constraint for V-M2."
+      severity: HARD
+    }
+
+    constraint C2 "Second Constraint" {
+      rule: "Required for UNTRACED_DECISION error refs."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Untraced Decision" {
+      rationale: "This decision has no supports links."
+      supports: []
+      respects: []
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Intent validation check" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+    }
+  }
+}

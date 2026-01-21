@@ -1,0 +1,95 @@
+{
+  "errors": [
+    {
+      "code": "BROKEN_REFERENCE",
+      "message": "Decision references non-existent intent or constraint.",
+      "refs": {
+        "constraint": "C_DO_NOT_EXIST",
+        "decision": "decisions.D2",
+        "intent": "I_DO_NOT_EXIST"
+      }
+    },
+    {
+      "code": "IMPLEMENTATION_LEAK",
+      "message": "Specification prescribes implementation; violates No Implementation.",
+      "refs": {
+        "constraint": "constraints.C1",
+        "validation": "V-M5"
+      }
+    },
+    {
+      "code": "INTENT_NOT_VERIFIABLE",
+      "message": "Intent lacks explicit validation; verifiability is required.",
+      "refs": {
+        "intent": "intents.I1",
+        "validation": "V-M1"
+      }
+    },
+    {
+      "code": "INTENT_NOT_VERIFIABLE",
+      "message": "Intent lacks explicit validation; verifiability is required.",
+      "refs": {
+        "intent": "intents.I2",
+        "validation": "V-M1"
+      }
+    },
+    {
+      "code": "UNTRACED_DECISION",
+      "message": "Decision missing traceability links to intents/constraints.",
+      "refs": {
+        "constraint": "constraints.C2",
+        "decision": "decisions.D1"
+      }
+    }
+  ],
+  "outcomes": [
+    {
+      "status": "unsatisfied",
+      "targets": [
+        "intents.I1",
+        "intents.I2"
+      ],
+      "validation_id": "V-M1"
+    },
+    {
+      "notes": [
+        "All declared constraints (constraints.C1, constraints.C2) exist and are syntactically evaluable."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M2"
+    },
+    {
+      "status": "unsatisfied",
+      "targets": [
+        "decisions.D1",
+        "decisions.D2"
+      ],
+      "validation_id": "V-M3"
+    },
+    {
+      "notes": [
+        "Validations are executable using declared capabilities (emit_structured_validation, emit_structured_errors)."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M4"
+    },
+    {
+      "evidence": [
+        {
+          "kind": "excerpt",
+          "value": "implementation_notes contains algorithmic and procedural directives (B-Tree, LRU, Big-O, scheduled job)."
+        }
+      ],
+      "status": "unsatisfied",
+      "targets": [
+        "system"
+      ],
+      "validation_id": "V-M5"
+    }
+  ],
+  "spec_version": "DIL:spec v0",
+  "state": "invalid",
+  "system_id": "DIL.FailureSeed"
+}

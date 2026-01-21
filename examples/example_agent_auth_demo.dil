@@ -1,0 +1,117 @@
+DIL:spec v0
+
+system "DIL.AgentAuthDemo" {
+
+  about {
+    purpose: "Functional gated demo: sqlite + backend + frontend + register/login flow"
+  }
+
+  capabilities {
+    check_file_exists
+    check_command_exit
+    check_http_endpoint
+  }
+
+  intents {
+    intent I1 "Create a working auth demo with SQLite, backend, frontend" {
+      statement: "Produce a runnable minimal app that supports register/login/me using SQLite."
+      validations: [V_GATE_01_FILETREE, V_GATE_01_BACKEND_INSTALL, V_GATE_02_DB_SCHEMA, V_GATE_03_HEALTH, V_GATE_04_AUTH_FLOW]
+    }
+  }
+
+  constraints {
+    constraint C1 "No external services" {
+      rule: "Must run fully locally; no third-party hosted services."
+      severity: HARD
+    }
+    constraint C2 "No frameworks creep" {
+      rule: "Use minimal Node stdlib + SQLite library; no Next.js, no heavy frameworks."
+      severity: HARD
+    }
+    constraint C3 "Do not modify this DIL file" {
+      rule: "The agent MUST NOT modify /var/lib/dil/example_agent_auth_demo.dil"
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Node http + SQLite" {
+      rationale: "Fastest deterministic demo without framework creep."
+      supports: [I1]
+      respects: [C1, C2, C3]
+    }
+  }
+
+  validations {
+
+    # --------------------------
+    # GATE 01: file tree + npm install
+    # --------------------------
+
+    validate V_GATE_01_FILETREE "Required files exist and are non-empty" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/auth-demo/backend/server.js type=file min_size_bytes=10"
+      on_fail: error { code: "GATE01_MISSING_BACKEND_SERVER" message: "backend/server.js missing or empty" refs: { path: "/var/lib/dil/auth-demo/backend/server.js" } }
+    }
+
+    validate V_GATE_01_FILETREE_2 "Frontend files exist" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/auth-demo/frontend/index.html type=file min_size_bytes=10"
+      on_fail: error { code: "GATE01_MISSING_FRONTEND_HTML" message: "frontend/index.html missing or empty" refs: { path: "/var/lib/dil/auth-demo/frontend/index.html" } }
+    }
+
+    validate V_GATE_01_BACKEND_INSTALL "Backend installs dependencies" {
+    target: system
+    requires_capability: "check_command_exit"
+    predicate: "check_command_exit cmd=npm args=--prefix,/var/lib/dil/auth-demo/backend,install expected_exit=0 timeout_ms=600000"
+    on_fail: error { code: "GATE01_NPM_INSTALL_FAILED" message: "npm install failed" refs: { cwd: "/var/lib/dil/auth-demo/backend" } }
+    }
+
+    # --------------------------
+    # GATE 02: SQLite DB exists + schema has users table
+    # --------------------------
+
+    validate V_GATE_02_DB_FILE "DB file exists" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/auth-demo/backend/db.sqlite type=file min_size_bytes=50"
+      on_fail: error { code: "GATE02_DB_MISSING" message: "db.sqlite missing/empty" refs: { path: "/var/lib/dil/auth-demo/backend/db.sqlite" } }
+    }
+
+    validate V_GATE_02_DB_SCHEMA "DB schema contains users table" {
+      target: system
+      requires_capability: "check_command_exit"
+      predicate: "check_command_exit cmd=bash args=-lc,sqlite3 /var/lib/dil/auth-demo/backend/db.sqlite \"SELECT name FROM sqlite_master WHERE type='table' AND name='users';\" | grep -q users expected_exit=0 timeout_ms=30000"
+      on_fail: error { code: "GATE02_DB_SCHEMA_BAD" message: "users table not found in sqlite schema" refs: { db: "/var/lib/dil/auth-demo/backend/db.sqlite" } }
+    }
+
+    # --------------------------
+    # GATE 03: server health responds
+    # --------------------------
+
+    validate V_GATE_03_HEALTH "HTTP health endpoint responds 200" {
+      target: system
+      requires_capability: "check_http_endpoint"
+      predicate: "check_http_endpoint url=http://127.0.0.1:4311/health method=GET expected_status=200 timeout_ms=2000"
+      on_unknown: { status: UNKNOWN reason: "server not reachable yet (agent must start it during gate)" }
+    }
+
+    # --------------------------
+    # GATE 04: register/login/me flow works via curl
+    # --------------------------
+
+    validate V_GATE_04_AUTH_FLOW "Auth flow: register + login + me returns 200" {
+      target: system
+      requires_capability: "check_command_exit"
+      predicate: "check_command_exit cmd=bash args=-lc,EMAIL=test$(date +%s)@example.com; PASS=pass1234; curl -s -X POST http://127.0.0.1:4311/api/register -H 'Content-Type: application/json' -d \"{\\\"email\\\":\\\"'$EMAIL'\\\",\\\"password\\\":\\\"'$PASS'\\\"}\" | grep -q '\"ok\"' && TOKEN=$(curl -s -X POST http://127.0.0.1:4311/api/login -H 'Content-Type: application/json' -d \"{\\\"email\\\":\\\"'$EMAIL'\\\",\\\"password\\\":\\\"'$PASS'\\\"}\" | sed -n 's/.*\"token\":\"\\([^\"]*\\)\".*/\\1/p'); [ -n \"$TOKEN\" ] && curl -s http://127.0.0.1:4311/api/me -H \"Authorization: Bearer $TOKEN\" | grep -q \"$EMAIL\" expected_exit=0 timeout_ms=60000"
+      on_unknown: { status: UNKNOWN reason: "auth flow cannot be proven without running server" }
+    }
+  }
+
+  implementation_notes {
+    # Agent must create /var/lib/dil/auth-demo and implement a minimal local app.
+    # Server must listen on 127.0.0.1:4311
+  }
+}

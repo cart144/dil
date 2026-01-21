@@ -1,0 +1,57 @@
+{
+  "errors": [
+    {
+      "code": "UNTRACED_DECISION",
+      "message": "Decision missing traceability links to intents/constraints.",
+      "refs": {
+        "constraint": "constraints.C2",
+        "decision": "decisions.D1"
+      }
+    }
+  ],
+  "outcomes": [
+    {
+      "notes": [
+        "All intents are considered verifiable under core association rules."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "intents.I1"
+      ],
+      "validation_id": "V-M1"
+    },
+    {
+      "notes": [
+        "All declared constraints (constraints.C1, constraints.C2) exist and are syntactically evaluable."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M2"
+    },
+    {
+      "status": "unsatisfied",
+      "targets": [
+        "decisions.D1"
+      ],
+      "validation_id": "V-M3"
+    },
+    {
+      "notes": [
+        "Validations are executable using declared capabilities (emit_structured_validation, emit_structured_errors)."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M4"
+    },
+    {
+      "status": "satisfied",
+      "targets": [
+        "system"
+      ],
+      "validation_id": "V-M5"
+    }
+  ],
+  "spec_version": "DIL:spec v0",
+  "state": "invalid",
+  "system_id": "DIL.InvalidVM3Untraced"
+}

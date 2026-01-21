@@ -1,0 +1,12 @@
+{
+  "name": "auth-demo-backend",
+  "version": "1.0.0",
+  "description": "Minimal auth demo with SQLite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3"
+  }
+}

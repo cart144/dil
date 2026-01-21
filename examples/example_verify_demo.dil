@@ -1,0 +1,55 @@
+DIL:spec v0
+
+system "DIL.VerifyDemo" {
+
+  about {
+    owner: "DIL"
+    purpose: "Demo runtime verification via check_file_exists"
+  }
+
+  capabilities {
+    emit_structured_validation
+    emit_structured_errors
+    check_file_exists
+  }
+
+  intents {
+    intent I1 "Hello file must exist" {
+      statement: "The file /var/lib/dil/hello.html must exist after execution."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "No implementation prescribed" {
+      rule: "Specification MUST NOT prescribe implementation."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Allow creating hello.html" {
+      rationale: "This decision enables the intent while respecting constraints."
+      supports: [I1]
+      respects: [C1]
+    }
+  }
+
+  validations {
+    validate V1 "Intent is declared and traceable" {
+      target: intents.*
+      predicate: "intents exist and are traceable to a decision"
+      on_fail: error {
+        code: "INTENT_NOT_VERIFIABLE"
+        message: "Intent lacks explicit validation; verifiability is required."
+        refs: { intent: "intents.I1", validation: "V-M1" }
+      }
+    }
+
+    validate V2 "Verify hello.html exists" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/hello.html type=file min_size_bytes=1"
+    }
+  }
+}

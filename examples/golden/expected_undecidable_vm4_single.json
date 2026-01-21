@@ -1,0 +1,53 @@
+{
+  "errors": [],
+  "outcomes": [
+    {
+      "notes": [
+        "Intent intents.I1 is associated with validation validations.V1."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "intents.I1"
+      ],
+      "validation_id": "V-M1"
+    },
+    {
+      "notes": [
+        "Constraint constraints.C1 exists and is evaluable."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "constraints.C1"
+      ],
+      "validation_id": "V-M2"
+    },
+    {
+      "notes": [
+        "Decision decisions.D1 supports intents.I1 and respects constraints.C1."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "decisions.D1"
+      ],
+      "validation_id": "V-M3"
+    },
+    {
+      "reason": "Validation validations.V1 requires undeclared capability 'collect_evidence'.",
+      "status": "unknown",
+      "targets": [
+        "validations.V1"
+      ],
+      "validation_id": "V-M4"
+    },
+    {
+      "status": "satisfied",
+      "targets": [
+        "system"
+      ],
+      "validation_id": "V-M5"
+    }
+  ],
+  "spec_version": "DIL:spec v0",
+  "state": "undecidable",
+  "system_id": "DIL.UndecidableVM4Single"
+}

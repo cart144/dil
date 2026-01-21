@@ -1,0 +1,61 @@
+DIL:spec v0
+
+system "DIL.UndecidableSeed" {
+  about {
+    purpose: "Intentionally produce an UNDECIDABLE outcome due to missing capability/evidence."
+    scope:   "Language-level semantics only."
+  }
+
+  capabilities {
+    declare_intents
+    declare_constraints
+    record_decisions
+    emit_structured_validation
+    # intentionally missing: collect_external_evidence
+  }
+
+  intents {
+    intent I1 "Evidence-dependent Intent" {
+      statement: "All decisions must be auditable against external evidence sources."
+    }
+  }
+
+  constraints {
+    constraint C1 "Auditability Required" {
+      rule: "Every decision must be verifiable using external evidence."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Proceed without evidence" {
+      rationale: "Assume evidence will be available later."
+      supports: [I1]
+      respects: [C1]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Intent has validations" {
+      target: intents.*
+      predicate: "each intent must reference >=1 validation"
+    }
+
+    validate V4 "External evidence available" {
+      target: decisions.*
+      predicate: "external evidence can be collected and evaluated"
+      requires_capability: "collect_external_evidence"
+      on_unknown: {
+        status: UNKNOWN
+        reason: "Required capability 'collect_external_evidence' is not declared."
+      }
+    }
+  }
+
+  change {
+    condition CH1 "Evidence may arrive later" {
+      statement: "Validation depends on future availability of external evidence."
+    }
+  }
+}

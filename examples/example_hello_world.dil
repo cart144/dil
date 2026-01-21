@@ -1,0 +1,41 @@
+DIL:spec v0
+
+system "DIL.HelloWorld" {
+  about {
+    purpose: "Authorize the creation of a minimal static HTML page."
+    scope: "Single-file, static content only."
+  }
+
+  capabilities {
+    generate_static_html
+  }
+
+  intents {
+    intent I1 "Display Hello World" {
+      statement: "Produce a minimal HTML page that displays the text 'Hello World'."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "No Dynamic Behavior" {
+      rule: "The output MUST be a single static HTML file with no scripts or external dependencies."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Allow static HTML generation" {
+      rationale: "Static content satisfies the intent without requiring execution or runtime behavior."
+      supports: [I1]
+      respects: [C1]
+    }
+  }
+
+  validations {
+    validate V1 "Static HTML only" {
+      target: system
+      predicate: "output is a single static HTML file"
+    }
+  }
+}

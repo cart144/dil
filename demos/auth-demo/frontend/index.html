@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Demo</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+    input, button { display: block; width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box; }
+    button { cursor: pointer; background: #007bff; color: white; border: none; }
+    button:hover { background: #0056b3; }
+    .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .hidden { display: none; }
+    #user-info { background: #e9ecef; padding: 15px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Auth Demo</h1>
+
+  <div id="auth-forms">
+    <h2>Register</h2>
+    <form id="register-form">
+      <input type="email" id="reg-email" placeholder="Email" required>
+      <input type="password" id="reg-password" placeholder="Password" required>
+      <button type="submit">Register</button>
+    </form>
+
+    <h2>Login</h2>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <div id="user-info" class="hidden">
+    <h2>Logged In</h2>
+    <p>Email: <span id="user-email"></span></p>
+    <button id="logout-btn">Logout</button>
+  </div>
+
+  <div id="message" class="message hidden"></div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:4311';
+    let token = localStorage.getItem('token');
+
+    function showMessage(text, isError = false) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = 'message ' + (isError ? 'error' : 'success');
+    }
+
+    async function checkAuth() {
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('auth-forms').classList.add('hidden');
+          document.getElementById('user-info').classList.remove('hidden');
+          document.getElementById('user-email').textContent = data.email;
+        } else {
+          localStorage.removeItem('token');
+          token = null;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('Registration successful! You can now login.');
+        } else {
+          showMessage(data.error || 'Registration failed', true);
+        }
+      } catch (e) {
+        showMessage('Network error', true);
+      }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          token = data.token;
+          localStorage.setItem('token', token);
+          showMessage('Login successful!');
+          checkAuth();
+        } else {
+          showMessage(data.error || 'Login failed', true);
+        }
+      } catch (e) {
+        showMessage('Network error', true);
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      token = null;
+      document.getElementById('auth-forms').classList.remove('hidden');
+      document.getElementById('user-info').classList.add('hidden');
+      showMessage('Logged out');
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

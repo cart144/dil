@@ -1,0 +1,57 @@
+{
+  "errors": [
+    {
+      "code": "INTENT_NOT_VERIFIABLE",
+      "message": "Intent lacks explicit validation; verifiability is required.",
+      "refs": {
+        "intent": "intents.I1",
+        "validation": "V-M1"
+      }
+    }
+  ],
+  "outcomes": [
+    {
+      "status": "unsatisfied",
+      "targets": [
+        "intents.I1"
+      ],
+      "validation_id": "V-M1"
+    },
+    {
+      "notes": [
+        "Constraint constraints.C1 exists and is evaluable."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "constraints.C1"
+      ],
+      "validation_id": "V-M2"
+    },
+    {
+      "notes": [
+        "No decisions declared."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M3"
+    },
+    {
+      "notes": [
+        "Validations are executable using declared capabilities (emit_structured_validation, emit_structured_errors)."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M4"
+    },
+    {
+      "status": "satisfied",
+      "targets": [
+        "system"
+      ],
+      "validation_id": "V-M5"
+    }
+  ],
+  "spec_version": "DIL:spec v0",
+  "state": "invalid",
+  "system_id": "DIL.InvalidVM1Only"
+}

@@ -1,0 +1,73 @@
+DIL:spec v0
+
+system "DIL.AgentWebappDemo" {
+  about {
+    owner: "local"
+    purpose: "Functional end-to-end agent test: build webapp, fix intentional JS error, verify outputs."
+  }
+
+  capabilities {
+    emit_structured_validation
+    emit_structured_errors
+    check_file_exists
+    check_command_exit
+  }
+
+  intents {
+    intent I1 "Build a tiny web app (HTML/CSS/JS) and end in a working state" {
+      statement: "Create a minimal web app with index.html + style.css + app.js. Start with a deliberate JS error, then fix it so verification passes."
+      validations: [V_GATE_01_FILE_HTML, V_GATE_01_FILE_CSS, V_GATE_01_FILE_JS, V_GATE_02_JS_SYNTAX]
+    }
+  }
+
+  constraints {
+    constraint C1 "No external libraries or frameworks" {
+      rule: "No external JS/CSS libraries. Only vanilla HTML/CSS/JS."
+      severity: HARD
+    }
+    constraint C2 "Write into the dedicated folder" {
+      rule: "All artifacts must be under /var/lib/dil/webapp-demo/"
+      severity: HARD
+    }
+    constraint C3 "Do not modify the DIL spec during execution" {
+      rule: "The agent must not edit /var/lib/dil/example_agent_webapp_demo.dil"
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Implement the webapp and ensure final state passes verification" {
+      rationale: "We need a concrete end-to-end proof that agent execution + verification gating works."
+      supports: [I1]
+      respects: [C1, C2, C3]
+    }
+  }
+
+  validations {
+    // Gate 01: File existence checks (must pass before Gate 02)
+    validate V_GATE_01_FILE_HTML "index.html must exist and be non-empty" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/webapp-demo/index.html type=file min_size_bytes=20"
+    }
+
+    validate V_GATE_01_FILE_CSS "style.css must exist and be non-empty" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/webapp-demo/style.css type=file min_size_bytes=10"
+    }
+
+    validate V_GATE_01_FILE_JS "app.js must exist and be non-empty" {
+      target: system
+      requires_capability: "check_file_exists"
+      predicate: "check_file_exists path=/var/lib/dil/webapp-demo/app.js type=file min_size_bytes=10"
+    }
+
+    // Gate 02: Syntax validation (requires Gate 01 to pass first)
+    validate V_GATE_02_JS_SYNTAX "app.js must pass Node syntax check" {
+      target: system
+      requires_capability: "check_command_exit"
+      predicate: "check_command_exit cmd=node args=--check,/var/lib/dil/webapp-demo/app.js expected_exit=0 timeout_ms=30000"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "errors": [
+    {
+      "code": "IMPLEMENTATION_LEAK",
+      "message": "Specification prescribes implementation; violates No Implementation.",
+      "refs": {
+        "constraint": "constraints.C1",
+        "validation": "V-M5"
+      }
+    }
+  ],
+  "outcomes": [
+    {
+      "notes": [
+        "All intents are considered verifiable under core association rules."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "intents.I1"
+      ],
+      "validation_id": "V-M1"
+    },
+    {
+      "notes": [
+        "Constraint constraints.C1 exists and is evaluable."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "constraints.C1"
+      ],
+      "validation_id": "V-M2"
+    },
+    {
+      "notes": [
+        "Decision decisions.D1 supports intents.I1 and respects constraints.C1."
+      ],
+      "status": "satisfied",
+      "targets": [
+        "decisions.D1"
+      ],
+      "validation_id": "V-M3"
+    },
+    {
+      "notes": [
+        "Validations are executable using declared capabilities (emit_structured_validation, emit_structured_errors)."
+      ],
+      "status": "satisfied",
+      "targets": [],
+      "validation_id": "V-M4"
+    },
+    {
+      "evidence": [
+        {
+          "kind": "excerpt",
+          "value": "implementation_notes contains algorithmic and procedural directives (B-Tree, LRU, Big-O, scheduled job)."
+        }
+      ],
+      "status": "unsatisfied",
+      "targets": [
+        "system"
+      ],
+      "validation_id": "V-M5"
+    }
+  ],
+  "spec_version": "DIL:spec v0",
+  "state": "invalid",
+  "system_id": "DIL.InvalidVM5Leak"
+}

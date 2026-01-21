@@ -1,0 +1,57 @@
+name: Feature Request
+description: Propose a new feature or enhancement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before proposing a feature, consider whether it aligns with DIL's philosophy:
+        - Deterministic and verifiable
+        - Explicit over implicit
+        - No hand-waving
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Validator
+        - CLI
+        - Language/Specification
+        - Documentation
+        - Tooling
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this solve? Why is it needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: How should this work? Be specific.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches did you consider?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: spec-change
+    attributes:
+      label: Specification Impact
+      options:
+        - label: This requires changes to DIL language semantics
+        - label: This requires new test corpus entries
+        - label: This is backwards compatible

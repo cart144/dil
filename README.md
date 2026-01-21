@@ -1,12 +1,61 @@
-# DIL (Decision & Intent Language)
+# DIL — Decision & Intent Language
 
-An intent-oriented, AI-native formal language for declaring verifiable intents that govern system behavior.
+DIL is a **deterministic specification language** designed to sit *on top of LLMs and coding agents*.
 
-This repository contains:
-- **DIL Specification** (`/spec`) — normative language definition
-- **Reference Validator** (`/validator`) — implements DIL:spec v0 with mandatory validations V-M1 through V-M5
-- **CLI** (`/cli`) — orchestrates validation, verification, and agent execution
-- **Examples** (`/examples`) — canonical test corpus and golden outputs
+Its purpose is simple and strict:
+
+> **Describe what must happen, verify what actually happened, and never confuse the two.**
+
+DIL does not replace programming languages, scripts, or agents.
+It **orchestrates**, **verifies**, and **audits** them.
+
+---
+
+## Why DIL Exists
+
+When working with LLMs or autonomous coding agents:
+
+* Execution is non-deterministic
+* "Success" is inferred from text output
+* Failures are ambiguous
+* Reproducibility is weak
+* Automation is fragile
+
+DIL introduces a **hard verification layer**:
+
+* Agents are free to act
+* **Only verifiers decide correctness**
+* Every run ends in a clear, explicit state
+
+---
+
+## Core Concepts
+
+* **Intent** — what the system must achieve
+* **Decision** — why a specific approach is allowed
+* **Constraint** — what must never be violated
+* **Validation** — a concrete, executable check
+* **Gate** — an ordered group of validations that must pass
+
+Agents may execute code, modify files, or start services.
+
+**Truth is established exclusively by verification.**
+
+---
+
+## Deterministic Outcomes
+
+Every DIL execution ends in exactly one state:
+
+* `COMPLETED` — all gates verified
+* `FAILED` — a deterministic validation failed
+* `UNKNOWN` — the result cannot be determined
+
+These states are:
+
+* Printed to the terminal
+* Persisted in artifacts
+* Safe for automation and CI
 
 ---
 
@@ -16,9 +65,8 @@ This repository contains:
 curl -fsSL https://raw.githubusercontent.com/cart144/dil/main/install.sh | bash
 ```
 
-Requirements: Node.js 18+
+Verify:
 
-After installation:
 ```bash
 dil --version
 dil --help
@@ -26,178 +74,317 @@ dil --help
 
 ---
 
-## What DIL Is (and Is Not)
+## Quick Start
 
-**DIL is:**
-
-- A semantic control surface
-- A language for declaring intent, constraints, and decisions
-- A guardrail against hallucination and silent inference
-- Validator-driven and corpus-verified
-
-**DIL is not:**
-
-- A programming language
-- A workflow engine
-- A policy DSL
-- Turing-complete
-- Self-executing
-
-DIL does **not** execute, optimize, or prescribe implementations. It constrains decisions through verifiable intent, explicit constraints, and traceable outcomes.
-
----
-
-## Repository Structure
-
-```
-/
-├── README.md
-├── LICENSE
-├── install.sh
-├── spec/                           # Normative specifications
-│   ├── FOUNDATION.md
-│   ├── SEMANTIC-CORE.md
-│   ├── VALIDATION.md
-│   ├── GRAMMAR_EBNF.md
-│   ├── artifact_model.md
-│   ├── canonical_report_schema.md
-│   ├── error_codes.md
-│   ├── conformance.md
-│   ├── llm_contract.md
-│   ├── governance.md
-│   └── ...
-├── examples/                       # Test corpus
-│   ├── README.md                   # Corpus documentation
-│   ├── example*.dil                # Canonical test cases
-│   └── golden/                     # Expected outputs
-│       └── expected_*.json
-├── demos/                          # Demo applications
-│   ├── auth-demo/
-│   └── webapp-demo/
-├── cli/                            # CLI implementation
-│   ├── src/
-│   └── dist/
-├── validator/                      # Reference validator
-│   ├── *.ts
-│   └── dist/
-├── scripts/                        # Build/release tooling
-│   └── release/
-└── .github/                        # CI/CD workflows
-    └── workflows/
-```
-
----
-
-## Quickstart
-
-### Using the CLI
+### 1. Validate a DIL specification
 
 ```bash
-# Validate a spec
 dil validate examples/example_valid_strict.dil
+echo $?  # 0 = valid, 1 = invalid, 2 = undecidable
+```
 
-# Verify checks against real system state
+### 2. Verify execution constraints
+
+```bash
 dil verify examples/example_verify_demo.dil
-
-# Run agent-orchestrated execution
-dil agent examples/example_agent_auth_demo.dil -- claude -p "..."
 ```
 
-### Development Mode
+This runs only the verifier. No agent is involved.
+
+### 3. Execute with an LLM agent (Claude Code, non-interactive)
 
 ```bash
-# Build from source
-cd cli && npm install && npm run build
-cd ../validator && npm install && npm run build
+dil agent examples/example_agent_webapp_demo.dil -- \
+  claude --dangerously-skip-permissions --output-format text -p "Build the app exactly as specified"
+```
 
-# Run validator directly
-node validator/dist/index.js examples/example_invalid.dil
+Claude Code flags explained:
 
-# Run CLI directly
-node cli/dist/index.js validate examples/example_valid_strict.dil
+* `--dangerously-skip-permissions` disables interactive permission prompts
+* `--output-format text` ensures deterministic plain-text output
+* `-p` runs Claude in print-only, non-interactive mode
+
+DIL, not the LLM, determines success or failure.
+
+### 4. Interpret results
+
+Exit codes:
+
+* `0` → COMPLETED
+* `1` → FAILED
+* `2` → UNKNOWN
+
+Execution artifacts:
+
+```
+.dil/runs/<run-id>/
 ```
 
 ---
 
-## Exit Codes
+## Writing DIL Files
 
-| Code | Meaning |
-|------|---------|
-| `0` | VALID / COMPLETED |
-| `1` | INVALID / FAILED |
-| `2` | UNDECIDABLE / UNKNOWN |
+A `.dil` file declares **what** a system must do and **how** to verify it.
+
+### Basic Structure
+
+```dil
+DIL:spec v0
+
+system "MySystem.Name" {
+  about {
+    purpose: "What this spec is for."
+    scope:   "Boundaries of the specification."
+  }
+
+  capabilities {
+    # What the system is allowed to do
+    declare_intents
+    declare_constraints
+    emit_structured_validation
+  }
+
+  intents {
+    intent I1 "Intent Name" {
+      statement: "What must be achieved."
+      validations: [V1]
+    }
+  }
+
+  constraints {
+    constraint C1 "Constraint Name" {
+      rule: "What must never be violated."
+      severity: HARD
+    }
+  }
+
+  decisions {
+    decision D1 "Decision Name" {
+      rationale: "Why this approach was chosen."
+      supports: [I1]
+      respects: [C1]
+      supersedes: []
+    }
+  }
+
+  validations {
+    validate V1 "Validation Name" {
+      target: intents.*
+      predicate: "condition to check"
+      on_fail: error {
+        code: "ERROR_CODE"
+        message: "Human-readable error message."
+        refs: { intent: "${target.id}" }
+      }
+    }
+  }
+}
+```
+
+### Section Reference
+
+| Section | Purpose |
+|---------|---------|
+| `about` | Metadata: purpose and scope |
+| `capabilities` | Declares what the system can do |
+| `intents` | **What** must be achieved |
+| `constraints` | **What** must never be violated |
+| `decisions` | **Why** specific approaches are allowed |
+| `validations` | **How** to verify intents are satisfied |
+| `change` | Conditions for future evolution (optional) |
+
+### Key Rules
+
+* Every **intent** must link to at least one **validation** (`validations: [V1]`)
+* Every **decision** must support at least one **intent** and respect at least one **constraint**
+* **Constraints** with `severity: HARD` cause immediate failure if violated
+* **Validations** define the actual checks; agents cannot override them
+
+### Formal Grammar
+
+See [`spec/GRAMMAR_EBNF.md`](spec/GRAMMAR_EBNF.md) for the complete syntax specification.
 
 ---
 
-## Conformance Testing
+## CLI Overview
 
-DIL conformance is verified by **byte-for-byte comparison** against the canonical corpus.
+DIL is installed as a system-level CLI.
 
 ```bash
-node validator/dist/index.js examples/example_invalid.dil > output.json
-diff examples/golden/expected_validation_report.json output.json
+dil <command> [options]
 ```
 
-No output means conformance.
+Available commands:
 
-See: `examples/README.md`
+```bash
+dil agent <spec.dil> -- <agent-command>
+dil validate <spec.dil>
+dil verify <spec.dil>
+```
+
+The user **never interacts with the agent directly**.
+The agent is an implementation detail.
 
 ---
 
 ## Using DIL with LLMs
 
-LLMs may:
-- Read DIL
-- Explain DIL
-- Reason *about* DIL
+DIL is designed to be used **with non-interactive coding agents** (LLMs running in batch / automation mode), not as a chat interface.
 
-LLMs must not:
-- Modify DIL
-- Infer missing information
-- Replace validation logic
+The reference and currently supported agent is **Claude Code**.
 
-See: `spec/llm_contract.md`
+DIL does **not** rely on natural language correctness. Instead:
+
+* the agent performs actions (writes files, runs commands)
+* DIL independently verifies outcomes through gates
+
+### Example: Running DIL with Claude Code (Non-Interactive)
+
+Claude Code provides two critical flags that make it suitable for deterministic execution:
+
+* `--dangerously-skip-permissions` — disables interactive permission prompts
+* `--output-format text` — forces plain text output (no UI framing)
+
+A typical invocation looks like this:
+
+```bash
+dil agent example_agent_auth_demo.dil -- \
+  claude \
+    --dangerously-skip-permissions \
+    --output-format text \
+    -p "Work inside the repository. Implement the spec requirements. Ensure all gates pass."
+```
+
+What happens:
+
+1. Claude Code runs **fully non-interactive**
+2. It performs filesystem and command operations
+3. DIL executes verification gates **independently**
+4. The final result is derived *only* from verifier outcomes
+
+Claude's own output is treated as **opaque** and **non-authoritative**.
+
+### Why This Matters
+
+Most LLM tooling mixes:
+
+* reasoning
+* execution
+* success declaration
+
+DIL intentionally separates them:
+
+| Role              | Responsibility                      |
+| ----------------- | ----------------------------------- |
+| LLM (Claude Code) | Acts (writes code, runs commands)   |
+| DIL               | Verifies outcomes deterministically |
+
+This allows:
+
+* retries on transient agent failures
+* hard stops on deterministic verification failures
+* auditable, replayable runs
+
+DIL can support other agents **only if** they support:
+
+* non-interactive execution
+* deterministic CLI invocation
+* filesystem + process access
 
 ---
 
-## Documentation
+## Execution Flow
 
-### Core Specification
-- `spec/FOUNDATION.md` — Foundational axioms
-- `spec/SEMANTIC-CORE.md` — Semantic primitives
-- `spec/VALIDATION.md` — Validation rules and aggregation
-- `spec/GRAMMAR_EBNF.md` — Syntax grammar
+```text
+DIL Execution Flow (Verified Orchestration)
+──────────────────────────────────────────────────────────────────────
 
-### Tooling Specification
-- `spec/validator_contract.md` — Validator behavior
-- `spec/VERIFICATION_EXTENSION.md` — Verification capabilities
-- `spec/dil_cli_ux_contract_v_1.md` — CLI UX contract
-- `spec/dil_global_install_cli_exposure_spec.md` — Installation behavior
+           ┌───────────────────────────────┐
+           │           spec.dil            │
+           │  (intents, decisions, gates)  │
+           └───────────────┬───────────────┘
+                           │
+                           │  dil agent spec.dil -- <agent-cmd>
+                           ▼
+           ┌───────────────────────────────┐
+           │         DIL Orchestrator       │
+           │  - discovers gates V_GATE_NN_  │
+           │  - runs in strict order        │
+           │  - retries only transient      │
+           └───────────────┬───────────────┘
+                           │
+                           │  (agent runs commands / edits files)
+                           ▼
+           ┌───────────────────────────────┐
+           │          Agent Executor        │
+           │  e.g. Claude Code, etc.        │
+           │  - MAY change filesystem       │
+           │  - MUST NOT declare truth      │
+           └───────────────┬───────────────┘
+                           │
+                           │  (truth comes from verifier only)
+                           ▼
+           ┌───────────────────────────────┐
+           │           DIL Verifier         │
+           │  - executes validations        │
+           │  - outputs PASSED/FAILED/UNK   │
+           └───────────────┬───────────────┘
+                           │
+                           │  exit codes + receipts
+                           ▼
+     ┌──────────────────────────────┬───────────────────────────────┐
+     │ Terminal Output (primary)     │ Artifacts (audit trail)        │
+     │ - gate-by-gate status         │ .dil/runs/<run-id>/            │
+     │ - retries + reasons           │ - run_receipt.json             │
+     │ - final state                 │ - verification.json            │
+     └──────────────────────────────┴───────────────────────────────┘
 
-### Reference
-- `spec/artifact_model.md` — Artifact types and IDs
-- `spec/canonical_report_schema.md` — Output JSON schema
-- `spec/error_codes.md` — Error code registry
-- `spec/conformance.md` — Conformance requirements
+Final execution state:
+  COMPLETED (exit 0)  → all gates VERIFIED
+  FAILED    (exit 1)  → deterministic failure
+  UNKNOWN   (exit 2)  → cannot determine outcome (classified)
+```
 
 ---
 
-## Governance
+## Examples
 
-DIL evolution is controlled. All semantic changes require corpus updates and are governed by `spec/governance.md`.
+The repository includes:
+
+* Valid and invalid `.dil` specifications
+* Undecidable cases
+* Agent-driven demos
+
+See the `examples/` and `demos/` directories.
 
 ---
 
-## License
+## Philosophy
 
-Apache-2.0. See `LICENSE`.
+DIL is intentionally:
+
+* Boring
+* Explicit
+* Verifiable
+* Hostile to hand-waving
+
+If a system claims success, it must **prove it**.
 
 ---
 
 ## Status
 
-- DIL:spec v0
-- Core validator: conformant
-- Corpus: stable
+DIL is **early but functional**.
 
-DIL is intentionally minimal. Its power comes from what it forbids.
+* Language semantics are defined
+* Validator and verifier are implemented
+* CLI UX contract is enforced
+* Global installer is available
+
+Expect iteration — not ambiguity.
+
+---
+
+## License
+
+Apache License 2.0

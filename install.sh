@@ -237,11 +237,9 @@ Check that version v$version exists and has release artifacts."
 
     # Install library files (atomic replace)
     info "Installing library files..."
-    if [ -d "$lib_dir" ] && [ "$(ls -A "$lib_dir" 2>/dev/null)" ]; then
-        rm -rf "$lib_dir"
-    fi
-    mkdir -p "$(dirname "$lib_dir")"
-    mv "$tmp_dir/$artifact_name/lib/dil" "$lib_dir"
+    rm -rf "$lib_dir"
+    mkdir -p "$lib_dir"
+    mv "$tmp_dir/$artifact_name/lib/dil/"* "$lib_dir/"
 
     # Install executable (atomic replace)
     info "Installing executable..."
